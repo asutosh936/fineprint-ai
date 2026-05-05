@@ -70,7 +70,7 @@ public class TosAnalysisService {
                 ToS Text:
                 """ + tosText + """
 
-                Return JSON:
+                Return ONLY valid JSON (no markdown, no code blocks):
                 {
                     "overallRiskScore": <0-10>,
                     "flaggedClauses": [
@@ -90,7 +90,20 @@ public class TosAnalysisService {
 
     private AnalysisResult parseResponse(String response) {
         try {
-            AnalysisResult result = objectMapper.readValue(response, AnalysisResult.class);
+            // Clean the response if it contains markdown code blocks
+            String cleanResponse = response.trim();
+            if (cleanResponse.startsWith("```json")) {
+                // Remove the opening ```json
+                cleanResponse = cleanResponse.substring(7);
+                // Remove the closing ```
+                int closingIndex = cleanResponse.lastIndexOf("```");
+                if (closingIndex > 0) {
+                    cleanResponse = cleanResponse.substring(0, closingIndex);
+                }
+                cleanResponse = cleanResponse.trim();
+            }
+
+            AnalysisResult result = objectMapper.readValue(cleanResponse, AnalysisResult.class);
             logger.debug("Successfully parsed AI response into AnalysisResult");
             return result;
         } catch (Exception e) {
