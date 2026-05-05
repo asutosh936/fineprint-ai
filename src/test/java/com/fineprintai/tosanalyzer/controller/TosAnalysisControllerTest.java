@@ -16,6 +16,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -29,7 +30,14 @@ class TosAnalysisControllerTest {
     private TosAnalysisService tosAnalysisService;
 
     @Test
-    void analyzeTos_ValidInput_ReturnsOk() throws Exception {
+    void index_ReturnsIndexView() throws Exception {
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"));
+    }
+
+    @Test
+    void analyzeTos_ValidInput_ReturnsResultsView() throws Exception {
         // Arrange
         FlaggedClause clause = new FlaggedClause("Test clause", "high", "Test rationale", "worse than baseline");
         List<FlaggedClause> clauses = Arrays.asList(clause);
@@ -37,41 +45,49 @@ class TosAnalysisControllerTest {
         when(tosAnalysisService.analyzeTos(anyString())).thenReturn(result);
 
         // Act & Assert
-        mockMvc.perform(post("/api/analyze")
+        mockMvc.perform(post("/analyze")
                         .param("text", "Sample ToS text")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.overallRiskScore").value(5))
-                .andExpect(jsonPath("$.flaggedClauses[0].clauseText").value("Test clause"));
+                .andExpect(view().name("results"))
+                .andExpect(model().attributeExists("result"));
     }
 
     @Test
-    void analyzeTos_EmptyText_ReturnsBadRequest() throws Exception {
-        mockMvc.perform(post("/api/analyze")
+    void analyzeTos_EmptyText_ReturnsIndexViewWithError() throws Exception {
+        mockMvc.perform(post("/analyze")
                         .param("text", ""))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"))
+                .andExpect(model().attribute("error", "Please provide valid ToS text."));
     }
 
     @Test
-    void analyzeTos_NullText_ReturnsBadRequest() throws Exception {
-        mockMvc.perform(post("/api/analyze"))
-                .andExpect(status().isBadRequest());
+    void analyzeTos_NullText_ReturnsIndexViewWithError() throws Exception {
+        mockMvc.perform(post("/analyze"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"))
+                .andExpect(model().attribute("error", "Please provide valid ToS text."));
     }
 
     @Test
-    void analyzeTos_TextTooLong_ReturnsBadRequest() throws Exception {
+    void analyzeTos_TextTooLong_ReturnsIndexViewWithError() throws Exception {
         String longText = "a".repeat(10001);
-        mockMvc.perform(post("/api/analyze")
+        mockMvc.perform(post("/analyze")
                         .param("text", longText))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"))
+                .andExpect(model().attribute("error", "ToS text is too long. Maximum 10,000 characters allowed."));
     }
 
     @Test
-    void analyzeTos_ServiceThrowsException_ReturnsInternalServerError() throws Exception {
+    void analyzeTos_ServiceThrowsException_ReturnsIndexViewWithError() throws Exception {
         when(tosAnalysisService.analyzeTos(anyString())).thenThrow(new RuntimeException("Test error"));
 
-        mockMvc.perform(post("/api/analyze")
+        mockMvc.perform(post("/analyze")
                         .param("text", "Sample text"))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"))
+                .andExpect(model().attribute("error", "An error occurred during analysis. Please try again."));
     }
 }

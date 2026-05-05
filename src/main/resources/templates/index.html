@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fineprint AI - Terms of Service Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-analyze {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+        }
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h1 class="display-4 fw-bold mb-4">Fineprint AI</h1>
+                    <p class="lead mb-4">Analyze your Terms of Service for potential red flags and hidden risks</p>
+                    <p class="mb-0">Paste your ToS text below and get an instant analysis powered by AI</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body p-5">
+                        <h2 class="card-title text-center mb-4">Analyze Terms of Service</h2>
+
+                        <div th:if="${error}" class="error-message">
+                            <strong>Error:</strong> <span th:text="${error}"></span>
+                        </div>
+
+                        <form th:action="@{/analyze}" method="post">
+                            <div class="mb-4">
+                                <label for="tosText" class="form-label fw-bold">Terms of Service Text</label>
+                                <textarea
+                                    class="form-control"
+                                    id="tosText"
+                                    name="text"
+                                    rows="12"
+                                    placeholder="Paste your Terms of Service text here..."
+                                    required
+                                    maxlength="10000"></textarea>
+                                <div class="form-text">
+                                    Maximum 10,000 characters. The analysis will help identify potential risks and red flags.
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-analyze">
+                                    <i class="fas fa-search me-2"></i>Analyze ToS
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        This tool is for informational purposes only and does not constitute legal advice.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+</body>
+</html>

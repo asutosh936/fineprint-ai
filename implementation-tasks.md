@@ -8,9 +8,9 @@ This file tracks the phased implementation of the Spring Boot application for an
 - [x] Project Setup (1-2 hours): Create Spring Boot project with Maven. Add dependencies (`spring-boot-starter-web`, `spring-boot-starter-thymeleaf`, `spring-ai-starter-model-openai`). Configure OpenAI API key in `application.properties`.
 - [x] Controller Layer (1-2 hours): Implement `@Controller` with `@PostMapping` for form submission. Validate input length (max 10,000 chars).
 - [x] Analysis Service (3-4 hours): Create service class. Build prompt for structured JSON output. Use Spring AI's `ChatClient` for GPT-4o mini call. Parse response into DTOs. Include simple baseline comparison logic.
-- [ ] Web Layer (2-3 hours): Create Thymeleaf templates (`index.html` for form, `results.html` for output). Add Bootstrap for basic styling (severity badges, highlighted excerpts).
-- [ ] Presentation Layer (1-2 hours): Render results in Thymeleaf with rankings, highlights, and disclaimer.
-- [ ] Testing & Validation (2-3 hours): Test with 3+ sample ToS texts. Ensure response <30s, structured flags, no errors. Manual review for relevance.
+- [x] Web Layer (2-3 hours): Create Thymeleaf templates (`index.html` for form, `results.html` for output). Add Bootstrap for basic styling (severity badges, highlighted excerpts).
+- [x] Presentation Layer (1-2 hours): Render results in Thymeleaf with rankings, highlights, and disclaimer.
+- [x] Testing & Validation (2-3 hours): Test with 3+ sample ToS texts. Ensure response <30s, structured flags, no errors. Manual review for relevance.
 - [ ] Overall Phase 1 Success: App runs locally, processes samples accurately.
 
 ## Phase 2: Better Analysis (Deferred)
