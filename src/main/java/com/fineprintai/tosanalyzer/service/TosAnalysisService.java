@@ -35,47 +35,56 @@ public class TosAnalysisService {
         }
 
         logger.info("Starting ToS analysis for text of length: {}", tosText.length());
+        long startTime = System.currentTimeMillis();
 
         String promptText = buildPrompt(tosText);
-        logger.debug("Generated prompt for AI");
+        // Log the prompt (truncated for readability if very long)
+        String logPrompt = promptText.length() > 500 ?
+            promptText.substring(0, 500) + "...[truncated]" : promptText;
+        logger.debug("Generated prompt for AI (length: {}): {}", promptText.length(), logPrompt);
 
         try {
             String response = chatClient.prompt(new Prompt(promptText))
                     .call()
                     .content();
-            logger.debug("Received AI response");
+            // Log the response (truncated for readability if very long)
+            String logResponse = response.length() > 500 ?
+                response.substring(0, 500) + "...[truncated]" : response;
+            logger.debug("Received AI response (length: {}): {}", response.length(), logResponse);
 
             AnalysisResult result = parseResponse(response);
-            logger.info("ToS analysis completed successfully");
+            long endTime = System.currentTimeMillis();
+            logger.info("ToS analysis completed successfully in {}ms", (endTime - startTime));
             return result;
         } catch (Exception e) {
-            logger.error("Error during ToS analysis: {}", e.getMessage(), e);
+            long endTime = System.currentTimeMillis();
+            logger.error("Error during ToS analysis after {}ms: {}", (endTime - startTime), e.getMessage(), e);
             throw e;
         }
     }
 
     private String buildPrompt(String tosText) {
         return """
-                Analyze the following Terms of Service text for potential red flags. Focus on clauses that could be risky for users, such as data privacy issues, arbitration, unilateral changes, etc.
+                Analyze this Terms of Service for user risks. Focus on: data privacy, arbitration, unilateral changes, liability limitations.
 
                 ToS Text:
                 """ + tosText + """
 
-                Provide a structured JSON response with the following format:
+                Return JSON:
                 {
-                    "overallRiskScore": <number 0-10>,
+                    "overallRiskScore": <0-10>,
                     "flaggedClauses": [
                         {
-                            "clauseText": "<quoted sentence snippet>",
+                            "clauseText": "<exact quote>",
                             "severity": "<high|medium|low>",
-                            "rationale": "<plain English explanation why it's risky>",
-                            "comparisonToBaseline": "<e.g., worse than baseline, similar to baseline>"
+                            "rationale": "<why risky>",
+                            "comparisonToBaseline": "<vs standard practices>"
                         }
                     ],
-                    "disclaimer": "This is not legal advice."
+                    "disclaimer": "Not legal advice."
                 }
 
-                Limit to top 10 flagged clauses. Compare to standard baseline ToS practices.
+                Max 8 clauses. Be concise.
                 """;
     }
 
