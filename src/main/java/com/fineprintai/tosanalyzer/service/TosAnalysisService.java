@@ -3,6 +3,7 @@ package com.fineprintai.tosanalyzer.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fineprintai.tosanalyzer.dto.AnalysisResult;
 import com.fineprintai.tosanalyzer.dto.FlaggedClause;
+import com.fineprintai.tosanalyzer.dto.ScanHistoryEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -10,8 +11,14 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class TosAnalysisService {
@@ -20,6 +27,8 @@ public class TosAnalysisService {
 
     private final ChatClient chatClient;
     private final ObjectMapper objectMapper;
+    private final List<ScanHistoryEntry> scanHistory = Collections.synchronizedList(new ArrayList<>());
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Autowired
     public TosAnalysisService(ChatClient.Builder chatClientBuilder, ObjectMapper objectMapper) {
@@ -53,6 +62,7 @@ public class TosAnalysisService {
             logger.debug("Received AI response (length: {}): {}", response.length(), logResponse);
 
             AnalysisResult result = parseResponse(response);
+            saveScanHistoryEntry(tosText, result);
             long endTime = System.currentTimeMillis();
             logger.info("ToS analysis completed successfully in {}ms", (endTime - startTime));
             return result;
@@ -61,6 +71,46 @@ public class TosAnalysisService {
             logger.error("Error during ToS analysis after {}ms: {}", (endTime - startTime), e.getMessage(), e);
             throw e;
         }
+    }
+
+    public List<ScanHistoryEntry> getScanHistory() {
+        return Collections.unmodifiableList(scanHistory);
+    }
+
+    public Optional<ScanHistoryEntry> findScanById(String id) {
+        return scanHistory.stream()
+                .filter(entry -> entry.getId().equals(id))
+                .findFirst();
+    }
+
+    private void saveScanHistoryEntry(String tosText, AnalysisResult result) {
+        String id = UUID.randomUUID().toString();
+        String title = createTitle(tosText);
+        String topIssue = extractTopIssue(result);
+        String scannedAt = LocalDateTime.now().format(dateFormatter);
+
+        ScanHistoryEntry entry = new ScanHistoryEntry(id, title, scannedAt, result.getOverallRiskScore(), topIssue, result);
+        scanHistory.add(0, entry);
+        if (scanHistory.size() > 20) {
+            scanHistory.remove(scanHistory.size() - 1);
+        }
+    }
+
+    private String createTitle(String tosText) {
+        String cleaned = tosText.trim().replaceAll("\\s+", " ");
+        if (cleaned.isEmpty()) {
+            return "Untitled scan";
+        }
+        return cleaned.length() <= 40 ? cleaned : cleaned.substring(0, 40).trim() + "...";
+    }
+
+    private String extractTopIssue(AnalysisResult result) {
+        if (result.getFlaggedClauses() == null || result.getFlaggedClauses().isEmpty()) {
+            return "No issues identified";
+        }
+        String clauseText = result.getFlaggedClauses().get(0).getClauseText();
+        String cleaned = clauseText.trim().replaceAll("\\s+", " ");
+        return cleaned.length() <= 28 ? cleaned : cleaned.substring(0, 28).trim() + "...";
     }
 
     private String buildPrompt(String tosText) {

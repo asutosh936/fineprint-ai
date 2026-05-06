@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+
+<head th:fragment="head(pageTitle)">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${pageTitle} + ' · ToS Analyzer'">ToS Analyzer</title>
+  <link rel="stylesheet" th:href="@{/css/counsel.css}"/>
+</head>
+
+<body>
+
+<th:block th:fragment="page(pageTitle, content)">
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${pageTitle} + ' · ToS Analyzer'">ToS Analyzer</title>
+    <link rel="stylesheet" th:href="@{/css/counsel.css}"/>
+  </head>
+  <body>
+
+    <div class="page-shell">
+
+      <!--<header class="site-header">
+        <a href="/" class="wordmark">ToS Analyzer</a>
+        <span class="tagline">AI-powered legal clause review</span>
+      </header>-->
+
+      <main>
+        <th:block th:replace="${content}"/>
+      </main>
+
+      <footer class="site-footer">
+
+        <span>Not legal advice — consult a qualified attorney</span>
+      </footer>
+
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <p class="loading-text" id="loadingText">Reading document…</p>
+    </div>
+
+    <script>
+      function showLoader() {
+        const textarea = document.getElementById('tosText');
+        if (!textarea || !textarea.value.trim()) return;
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) submitBtn.disabled = true;
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) loadingOverlay.classList.add('active');
+        const loadingText = document.getElementById('loadingText');
+        const steps = [
+          'Reading document…',
+          'Identifying clauses…',
+          'Scoring severity…',
+          'Comparing to baseline…',
+          'Generating report…'
+        ];
+        let i = 0;
+        setInterval(() => {
+          if (loadingText) loadingText.textContent = steps[Math.min(i, steps.length - 1)];
+          i++;
+        }, 2200);
+      }
+    </script>
+  </body>
+  </html>
+</th:block>
+
+</body>
+</html>

@@ -1,130 +1,77 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('Analysis Report', ~{::main-content})}"
+      lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Results - Fineprint AI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
-        }
-        .card {
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .risk-score {
-            font-size: 3rem;
-            font-weight: bold;
-        }
-        .severity-high {
-            background-color: #dc3545;
-            color: white;
-        }
-        .severity-medium {
-            background-color: #ffc107;
-            color: black;
-        }
-        .severity-low {
-            background-color: #28a745;
-            color: white;
-        }
-        .clause-highlight {
-            background-color: #fff3cd;
-            padding: 2px 4px;
-            border-radius: 3px;
-        }
-        .btn-back {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-        }
-        .btn-back:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-    </style>
+  <title>Analysis Report · ToS Analyzer</title>
 </head>
 <body>
-    <div class="hero-section">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center">
-                    <h1 class="display-5 fw-bold mb-3">Analysis Results</h1>
-                    <p class="mb-0">Review the flagged clauses and overall risk assessment</p>
-                </div>
-            </div>
-        </div>
+
+<th:block th:fragment="main-content">
+<div class="container">
+
+  <div class="form-header">
+    <div class="form-header-left">
+      <p class="page-eyebrow">Terms of Service Analysis Report</p>
+      <h1 class="page-title">Document Review</h1>
+      <p class="page-subtitle">A structured overview of risk exposure and flagged clauses.</p>
+    </div>
+    <div class="form-meta">
+      <a th:href="@{/}" class="btn-secondary">← New analysis</a>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-cell"
+          th:classappend="${result.overallRiskScore} >= 7 ? ' highlight-danger' : (${result.overallRiskScore} >= 4 ? ' highlight-warning' : '')">
+      <p class="summary-cell-label">Risk Score</p>
+      <p class="summary-cell-value"
+         th:classappend="${result.overallRiskScore} >= 7 ? ' danger' : (${result.overallRiskScore} >= 4 ? ' warning' : '')"
+         th:text="${result.overallRiskScore}">7</p>
+      <p class="summary-cell-sub"
+         th:text="${result.overallRiskScore} >= 7 ? 'HIGH RISK' : (${result.overallRiskScore} >= 4 ? 'MODERATE RISK' : 'LOW RISK')">HIGH</p>
     </div>
 
-    <div class="container my-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <!-- Overall Risk Score -->
-                <div class="card mb-4">
-                    <div class="card-body text-center p-4">
-                        <h3 class="card-title mb-3">Overall Risk Score</h3>
-                        <div class="risk-score" th:text="${result.overallRiskScore}">0</div>
-                        <p class="text-muted mt-2">Out of 10 (Higher = More Risky)</p>
-                    </div>
-                </div>
-
-                <!-- Flagged Clauses -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h4 class="mb-0">Flagged Clauses</h4>
-                    </div>
-                    <div class="card-body">
-                        <div th:if="${#lists.isEmpty(result.flaggedClauses)}" class="text-center text-muted">
-                            <p>No concerning clauses were identified in this ToS.</p>
-                        </div>
-                        <div th:each="clause : ${result.flaggedClauses}" class="mb-4">
-                            <div class="d-flex align-items-start">
-                                <span th:class="'badge me-3 severity-' + ${#strings.toLowerCase(clause.severity)}"
-                                      th:text="${clause.severity}">HIGH</span>
-                                <div class="flex-grow-1">
-                                    <p class="mb-2">
-                                        <strong>Clause:</strong>
-                                        <span class="clause-highlight" th:text="${clause.clauseText}">Sample clause text</span>
-                                    </p>
-                                    <p class="mb-2">
-                                        <strong>Rationale:</strong>
-                                        <span th:text="${clause.rationale}">Explanation of why this is concerning</span>
-                                    </p>
-                                    <p class="mb-0">
-                                        <strong>Comparison:</strong>
-                                        <span th:text="${clause.comparisonToBaseline}">How this compares to industry standards</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <hr th:if="${!clauseStat.last}">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Disclaimer -->
-                <div class="card mb-4">
-                    <div class="card-body bg-light">
-                        <h5 class="card-title">Important Disclaimer</h5>
-                        <p class="mb-0" th:text="${result.disclaimer}">
-                            This analysis is for informational purposes only and does not constitute legal advice.
-                            Please consult with a qualified attorney for legal matters.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="text-center">
-                    <a th:href="@{/}" class="btn btn-primary btn-back">
-                        <i class="fas fa-arrow-left me-2"></i>Analyze Another ToS
-                    </a>
-                </div>
-            </div>
-        </div>
+    <div class="summary-cell">
+      <p class="summary-cell-label">Flagged Clauses</p>
+      <p class="summary-cell-value" th:text="${#lists.size(result.flaggedClauses)}">5</p>
+      <p class="summary-cell-sub">Count of issues highlighted</p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+    <div class="summary-cell">
+      <p class="summary-cell-label">Next step</p>
+      <p class="summary-cell-value">Review clauses</p>
+      <p class="summary-cell-sub">Compare with your internal policy</p>
+    </div>
+  </div>
+
+  <hr class="section-rule"/>
+  <p class="section-label">Flagged clauses</p>
+
+  <div th:if="${#lists.isEmpty(result.flaggedClauses)}"
+       style="font-size:0.88rem; color:#555; line-height:1.6; padding:1rem 0; color:#166534;">
+    ✓ No significant flags were detected. This document is within reasonable standards.
+  </div>
+
+  <ul class="flag-list" th:unless="${#lists.isEmpty(result.flaggedClauses)}">
+    <li class="flag-item" th:each="clause, stat : ${result.flaggedClauses}">
+      <div class="flag-header">
+        <span class="badge" th:classappend="' badge-' + ${#strings.toUpperCase(clause.severity)}" th:text="${#strings.toUpperCase(clause.severity)}">HIGH</span>
+        <span class="flag-category">Clause #{stat.index + 1}</span>
+        <span style="font-size:0.72rem; color:#999; margin-left:auto;" th:text="'Issue #' + (${stat.index + 1})">#1</span>
+      </div>
+      <blockquote class="flag-clause" th:text="${clause.clauseText}">Clause text goes here.</blockquote>
+      <p class="flag-plain"><strong>What it means:</strong> <span th:text="${clause.rationale}">Reason for concern.</span></p>
+      <p class="flag-risk" th:text="${clause.comparisonToBaseline}">How it compares to baseline behavior.</p>
+    </li>
+  </ul>
+
+  <p class="disclaimer" th:text="${result.disclaimer}">
+    This analysis is generated by an AI and is not legal advice. Consult a qualified attorney for guidance.
+  </p>
+
+</div>
+</th:block>
+
 </body>
 </html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: page('Scan History', ~{::main-content})}"
+      lang="en">
+<head>
+  <title>Scan History · ToS Analyzer</title>
+</head>
+<body>
+
+<th:block th:fragment="main-content">
+<div class="container">
+
+  <div class="form-header">
+    <div class="form-header-left">
+      <p class="page-eyebrow">Scan History</p>
+      <h1 class="page-title">Recent analysis sessions</h1>
+      <p class="page-subtitle">Review the most recent Terms of Service scan history stored in this session.</p>
+    </div>
+    <div class="form-meta">
+      <a th:href="@{/}" class="btn-secondary">New scan</a>
+    </div>
+  </div>
+
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th>Document</th>
+        <th>Date</th>
+        <th>Risk</th>
+        <th>Top issue</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="scan : ${scans}">
+        <td th:text="${scan.title}">App Terms v2</td>
+        <td th:text="${scan.scannedAt}">2026-05-05 14:00</td>
+        <td>
+          <span class="risk-chip"
+                th:classappend="${scan.riskScore} >= 7 ? ' badge-CRITICAL' : (${scan.riskScore} >= 4 ? ' badge-HIGH' : ' badge-LOW')"
+                th:text="${scan.riskScore}">7</span>
+        </td>
+        <td th:text="${scan.topIssue}">Arbitration</td>
+        <td>
+          <a th:href="@{/scan/{id}(id=${scan.id})}" class="btn-secondary">View</a>
+        </td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(scans)}">
+        <td colspan="5" class="form-hint">No scans yet. Start a new Terms of Service scan to populate your history.</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+</th:block>
+
+</body>
+</html>

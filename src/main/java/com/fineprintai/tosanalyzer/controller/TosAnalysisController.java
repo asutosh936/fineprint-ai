@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -26,6 +27,26 @@ public class TosAnalysisController {
     @GetMapping("/")
     public String index() {
         return "index";
+    }
+
+    @GetMapping("/history")
+    public String scanHistory(Model model) {
+        model.addAttribute("scans", tosAnalysisService.getScanHistory());
+        return "history";
+    }
+
+    @GetMapping("/scan/{id}")
+    public String viewScan(@PathVariable String id, Model model) {
+        return tosAnalysisService.findScanById(id)
+                .map(entry -> {
+                    model.addAttribute("result", entry.getResult());
+                    return "results";
+                })
+                .orElseGet(() -> {
+                    model.addAttribute("error", "Requested scan could not be found.");
+                    model.addAttribute("scans", tosAnalysisService.getScanHistory());
+                    return "history";
+                });
     }
 
     @PostMapping("/analyze")
